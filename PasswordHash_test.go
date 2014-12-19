@@ -39,7 +39,7 @@ func testHash(t *testing.T, password string) {
 	} else {
 		fmt.Printf("Created Hash %s (len: %d) from password: %s\n", retVal, len(retVal), password)
 		valid := ValidatePassword(password, retVal)
-		if valid != true {
+		if !valid {
 			t.Errorf("GoPasswordHash.ValidatePassword(\"%s, %s\"): expected true, got false", password, retVal)
 		}
 	}

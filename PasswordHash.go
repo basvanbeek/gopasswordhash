@@ -33,8 +33,8 @@ import (
 	"strings"
 	"strconv"
 	"encoding/base64"
-	"crypto/rand"
 	"crypto/subtle"
+	"crypto/rand"
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
@@ -42,7 +42,7 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// these constants may be changed without breaking existing hashes.
+// These constants may be changed without breaking existing hashes.
 const PBKDF2_HASH_ALGORITHM string = "sha512"
 const PBKDF2_ITERATIONS     int    = 4096
 const PBKDF2_SALT_BYTES     int    = 64
@@ -83,8 +83,8 @@ func CreateHash(password string) (string, error) {
 	), err
 }
 
-func ValidatePassword(password string, goodHash string) bool {
-	params := strings.Split(goodHash, ":")
+func ValidatePassword(password string, correctHash string) bool {
+	params := strings.Split(correctHash, ":")
 	if len(params) < HASH_SECTIONS {
 		return false
 	}
@@ -96,26 +96,24 @@ func ValidatePassword(password string, goodHash string) bool {
 	if err != nil {
 		return false
 	}
-	pbkdf2Hash, err := base64.StdEncoding.DecodeString(params[HASH_PBKDF2_INDEX])
+	hash, err := base64.StdEncoding.DecodeString(params[HASH_PBKDF2_INDEX])
 	if err != nil {
 		return false
 	}
-	var hash []byte
+	var testHash []byte
 	switch params[HASH_ALGORITHM_INDEX] {
 		default:
 			return false
 		case "sha1":
-			hash = pbkdf2.Key([]byte(password), salt, it, len(pbkdf2Hash), sha1.New)
+			testHash = pbkdf2.Key([]byte(password), salt, it, len(hash), sha1.New)
 		case "sha224":
-			hash = pbkdf2.Key([]byte(password), salt, it, len(pbkdf2Hash), sha256.New224)
+			testHash = pbkdf2.Key([]byte(password), salt, it, len(hash), sha256.New224)
 		case "sha256":
-			hash = pbkdf2.Key([]byte(password), salt, it, len(pbkdf2Hash), sha256.New)
+			testHash = pbkdf2.Key([]byte(password), salt, it, len(hash), sha256.New)
 		case "sha384":
-			hash = pbkdf2.Key([]byte(password), salt, it, len(pbkdf2Hash), sha512.New384)
+			testHash = pbkdf2.Key([]byte(password), salt, it, len(hash), sha512.New384)
 		case "sha512":
-			hash = pbkdf2.Key([]byte(password), salt, it, len(pbkdf2Hash), sha512.New)
+			testHash = pbkdf2.Key([]byte(password), salt, it, len(hash), sha512.New)
 	}
-	return subtle.ConstantTimeCompare(hash, pbkdf2Hash) == 1
+	return subtle.ConstantTimeCompare(hash, testHash) == 1
 }
-
-

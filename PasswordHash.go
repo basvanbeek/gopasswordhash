@@ -21,10 +21,17 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
-Password Hashing With PBKDF2 (implementation logic see http://crackstation.net/hashing-security.htm).
 */
 
+/* 
+	Package gopasswordhash implements functions to create and verify salted cryptographic hashes suitable 
+	for building password authentication mechanisms. Code has been inspired by the excellent article 
+	"Salted Password Hashing - Doing it Right" which can be found at https://crackstation.net/hashing-security.htm
+	
+	When needing highly secure password verification / storage solutions use this library in combination with
+	a secret key to be added to the password which should be stored on an external system or
+	special hardware device like the YubiHSM
+*/
 package gopasswordhash
 
 import (
@@ -42,18 +49,31 @@ import (
 	"golang.org/x/crypto/pbkdf2"
 )
 
-// These constants may be changed without breaking existing hashes.
+/* The PBKDF2_* constants may be changed without breaking existing stored hashes. */
+
+// PBKDF2_HASH_ALGORITHM can be set to sha1, sha224, sha256, sha384 or sha512 as the underlying hashing mechanism to be used by the PBKDF2 function
 const PBKDF2_HASH_ALGORITHM string = "sha512"
+// PBKDF2_ITERATIONS sets the amount of iterations used by the PBKDF2 hashing algorithm
 const PBKDF2_ITERATIONS     int    = 4096
+// PBKDF2_SALT_BYTES sets the amount of bytes for the salt used in the PBKDF2 hashing algorithm
 const PBKDF2_SALT_BYTES     int    = 64
+// PBKDF2_HASH_BYTES sets the amount of bytes for the hash output from the PBKDF2 hashing algorithm
 const PBKDF2_HASH_BYTES     int    = 64
 
+/* altering the HASH_* constants breaks existing stored hashes */
+
+// HASH_SECTIONS identifies the expected amount of parameters encoded in a hash generated and/or tested in this package
 const HASH_SECTIONS         int    = 4
+// HASH_ALGORITHM_INDEX identifies the position of the hash algorithm identifier in a hash generated and/or tested in this package
 const HASH_ALGORITHM_INDEX  int    = 0
+// HASH_ITERATION_INDEX identifies the position of the iteration count used by PBKDF2 in a hash generated and/or tested in this package
 const HASH_ITERATION_INDEX  int    = 1
+// HASH_SALT_INDEX identifies the position of the used salt in a hash generated and/or tested in this package
 const HASH_SALT_INDEX       int    = 2
+// HASH_PBKDF2_INDEX identifies the position of the actual password hash in a hash generated and/or tested in this package
 const HASH_PBKDF2_INDEX     int    = 3
 
+// CreateHash creates a salted cryptographic hash with key stretching (PBKDF2), suitable for storage and usage in password authentication mechanisms.
 func CreateHash(password string) (string, error) {
 	salt := make([]byte, PBKDF2_SALT_BYTES)
 	_, err := rand.Read(salt)
@@ -83,6 +103,7 @@ func CreateHash(password string) (string, error) {
 	), err
 }
 
+// ValidatePassword hashes a password according to the setup found in the correct hash string and does a constant time compare on the correct hash and calculated hash.
 func ValidatePassword(password string, correctHash string) bool {
 	params := strings.Split(correctHash, ":")
 	if len(params) < HASH_SECTIONS {

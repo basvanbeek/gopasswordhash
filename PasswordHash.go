@@ -55,8 +55,6 @@ const (
 	PBKDF2_HASH_ALGORITHM string = "sha512"
 	// PBKDF2_ITERATIONS sets the amount of iterations used by the PBKDF2 hashing algorithm
 	PBKDF2_ITERATIONS     int    = 15000
-	// PBKDF2_SALT_BYTES sets the amount of bytes for the salt used in the PBKDF2 hashing algorithm
-	PBKDF2_SALT_BYTES     int    = 64
 	// SCRYPT_N is a CPU/memory cost parameter, which must be a power of two greater than 1
 	SCRYPT_N              int    = 32768
 	// SCRYPT_R is the block size parameter
@@ -64,6 +62,8 @@ const (
 	// SCRYPT_P is the parallelization parameter, a positive integer less than or equal to ((2^32-1) * 32) / (128 * r)
 	SCRYPT_P              int    = 1
 	
+	// SALT_BYTES sets the amount of bytes for the salt used in the PBKDF2 / scrypt hashing algorithm
+	SALT_BYTES            int    = 64
 	// HASH_BYTES sets the amount of bytes for the hash output from the PBKDF2 / scrypt hashing algorithm
 	HASH_BYTES            int    = 64
 )
@@ -88,7 +88,7 @@ const (
 
 // CreateHash creates a salted cryptographic hash with key stretching (PBKDF2), suitable for storage and usage in password authentication mechanisms.
 func CreateHash(password string) (string, error) {
-	salt := make([]byte, PBKDF2_SALT_BYTES)
+	salt := make([]byte, SALT_BYTES)
 	_, err := rand.Read(salt)
 	if err != nil {
 		return "", err

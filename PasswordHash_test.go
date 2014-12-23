@@ -33,12 +33,12 @@ import (
 func testHash(t *testing.T, password string) {
 	retVal, err := CreateHash(password)
 	if err != nil {
-		t.Errorf("GoPasswordHash.CreateHash(\"%s\"): expected a hash, got error: %s", password, err)
+		t.Errorf("GoPasswordHash.CreateHash(): expected a hash, got error: %s", password, err)
 	} else {
-		fmt.Printf("Created Hash %s (len: %d) from password: %s\n", retVal, len(retVal), password)
+		fmt.Printf("Created Hash %s with string length %d\n", retVal, len(retVal))
 		valid := ValidatePassword(password, retVal)
 		if !valid {
-			t.Errorf("GoPasswordHash.ValidatePassword(\"%s, %s\"): expected true, got false", password, retVal)
+			t.Errorf("GoPasswordHash.ValidatePassword(%s): expected true, got false", retVal)
 		}
 	}
 }
